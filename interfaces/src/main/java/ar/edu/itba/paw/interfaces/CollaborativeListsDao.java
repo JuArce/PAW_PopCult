@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface CollaborativeListsDao {
+
     CollabRequest makeNewRequest(MediaList mediaList, User user) throws CollaboratorRequestAlreadyExistsException;
 
     Optional<CollabRequest> getById(int collabId);

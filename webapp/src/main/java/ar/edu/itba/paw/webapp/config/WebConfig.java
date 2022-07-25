@@ -38,6 +38,7 @@ import java.util.Properties;
 @Configuration
 @PropertySource({"classpath:/config/mail-config-develop.properties"})
 //@PropertySource({ "classpath:/config/mail-config-production.properties" })
+@PropertySource({"classpath:/config/environment.properties"})
 public class WebConfig {
 
     @Value("classpath:schema.sql")
@@ -56,9 +57,9 @@ public class WebConfig {
         final SimpleDriverDataSource ds = new SimpleDriverDataSource();
 
         ds.setDriverClass(org.postgresql.Driver.class);
-        ds.setUrl("jdbc:postgresql://localhost:5432/pawlocal");
-        ds.setUsername("postgres");
-        ds.setPassword("123456789");
+        ds.setUrl(environment.getProperty("db.url"));
+        ds.setUsername(environment.getProperty("db.username"));
+        ds.setPassword(environment.getProperty("db.password"));
 
         return ds;
     }
@@ -95,11 +96,11 @@ public class WebConfig {
         factoryBean.setJpaVendorAdapter(vendorAdapter);
 
         final Properties properties = new Properties();
-        properties.setProperty("hibernate.hbm2ddl.auto", "none");
-        properties.setProperty("hibernate.dialect", "org.hibernate.dialect.PostgreSQL92Dialect");
+        properties.setProperty("hibernate.hbm2ddl.auto", environment.getProperty("hibernate.hbm2ddl.auto"));
+        properties.setProperty("hibernate.dialect", environment.getProperty("hibernate.dialect"));
         //TODO lo siguiente no va en producción
-        properties.setProperty("hibernate.show_sql", "true");
-        properties.setProperty("format_sql", "true");
+        properties.setProperty("hibernate.show_sql", environment.getProperty("hibernate.show_sql"));
+        properties.setProperty("format_sql", environment.getProperty("format_sql"));
         // hasta acá
         factoryBean.setJpaProperties(properties);
 

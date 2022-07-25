@@ -30,29 +30,29 @@ public class UserHibernateDao implements UserDao {
 
     @Override
     public List<User> getById(List<Integer> userIds) {
-        final TypedQuery<User> query = em.createQuery("from User where userId in :userIds", User.class);
-        query.setParameter("userIds", userIds);
+        final TypedQuery<User> query = em.createQuery("FROM User WHERE userId IN :userIds", User.class)
+                .setParameter("userIds", userIds);
         return userIds.isEmpty() ? Collections.emptyList() : query.getResultList();
     }
 
     @Override
     public Optional<User> getByEmail(String email) {
-        final TypedQuery<User> query = em.createQuery("from User where email = :email", User.class);
-        query.setParameter("email", email);
+        final TypedQuery<User> query = em.createQuery("FROM User WHERE email = :email", User.class)
+                .setParameter("email", email);
         return query.getResultList().stream().findFirst();
     }
 
     @Override
     public Optional<User> getByUsername(String username) {
-        final TypedQuery<User> query = em.createQuery("from User where username = :username", User.class);
-        query.setParameter("username", username);
+        final TypedQuery<User> query = em.createQuery("FROM User WHERE username = :username", User.class)
+                .setParameter("username", username);
         return query.getResultList().stream().findFirst();
     }
 
     @Override
     public List<User> getByUsernames(List<String> usernames) {
-        final TypedQuery<User> query = em.createQuery("from User where username in :usernames", User.class);
-        query.setParameter("usernames", usernames);
+        final TypedQuery<User> query = em.createQuery("FROM User WHERE username IN :usernames", User.class)
+                .setParameter("usernames", usernames);
         return usernames.isEmpty() ? Collections.emptyList() : query.getResultList();
     }
 
@@ -76,8 +76,8 @@ public class UserHibernateDao implements UserDao {
 
     @Override
     public List<User> getBannedUsers() {
-        final TypedQuery<User> query = em.createQuery("from User where nonLocked = :nonLocked", User.class);
-        query.setParameter("nonLocked", false);
+        final TypedQuery<User> query = em.createQuery("FROM User WHERE nonLocked = :nonLocked", User.class)
+                .setParameter("nonLocked", false);
         return query.getResultList();
     }
 
@@ -112,12 +112,10 @@ public class UserHibernateDao implements UserDao {
             wheres.add(" nonlocked = :nonlocked ");
             parameters.put("nonlocked", !banned);
         }
-
         if (term != null) {
             wheres.add(" username ILIKE CONCAT('%', :username, '%') ");
             parameters.put("username", term);
         }
-
         if (notInListId != null) {
             wheres.add(" userid NOT IN ( " +
                     "SELECT userid FROM medialist WHERE medialistid = :listid " +
@@ -126,13 +124,11 @@ public class UserHibernateDao implements UserDao {
                     ") ");
             parameters.put("listid", notInListId);
         }
-
         if (!wheres.isEmpty()) {
             queryBuilder.append(" WHERE ");
             queryBuilder.append(wheres.removeFirst());
             wheres.forEach(where -> queryBuilder.append(" AND ").append(where));
         }
-
         queryBuilder.append(" ORDER BY username ASC ");
         if (page != null && pageSize != null) {
             queryBuilder.append(" OFFSET :offset LIMIT :limit ");

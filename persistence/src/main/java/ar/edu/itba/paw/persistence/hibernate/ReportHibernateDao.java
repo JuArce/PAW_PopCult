@@ -40,7 +40,9 @@ public class ReportHibernateDao implements ReportDao {
     }
 
     private boolean listAlreadyReportedByUser(MediaList mediaList, User user) {
-        return ((Number) em.createNativeQuery("SELECT COUNT(*) FROM listreport WHERE listid = :mediaListId AND reporteeid = :userId")
+        return ((Number) em.createNativeQuery("SELECT COUNT(*) " +
+                        "FROM listreport " +
+                        "WHERE listid = :mediaListId AND reporteeid = :userId")
                 .setParameter("mediaListId", mediaList.getMediaListId())
                 .setParameter("userId", user.getUserId())
                 .getSingleResult()).intValue() != 0;
@@ -57,7 +59,9 @@ public class ReportHibernateDao implements ReportDao {
     }
 
     private boolean listCommentAlreadyReportedByUser(ListComment listComment, User user) {
-        return ((Number) em.createNativeQuery("SELECT COUNT(*) FROM listcommentreport WHERE commentid = :commentId AND reporteeid = :userId")
+        return ((Number) em.createNativeQuery("SELECT COUNT(*) " +
+                        "FROM listcommentreport " +
+                        "WHERE commentid = :commentId AND reporteeid = :userId")
                 .setParameter("commentId", listComment.getCommentId())
                 .setParameter("userId", user.getUserId())
                 .getSingleResult()).intValue() != 0;
@@ -74,7 +78,9 @@ public class ReportHibernateDao implements ReportDao {
     }
 
     private boolean mediaCommentAlreadyReportedByUser(MediaComment mediaComment, User user) {
-        return ((Number) em.createNativeQuery("SELECT COUNT(*) FROM mediacommentreport WHERE commentid = :commentId AND reporteeid = :userId")
+        return ((Number) em.createNativeQuery("SELECT COUNT(*) " +
+                        "FROM mediacommentreport " +
+                        "WHERE commentid = :commentId AND reporteeid = :userId")
                 .setParameter("commentId", mediaComment.getCommentId())
                 .setParameter("userId", user.getUserId())
                 .getSingleResult()).intValue() != 0;
@@ -99,7 +105,9 @@ public class ReportHibernateDao implements ReportDao {
     public PageContainer<ListReport> getListReports(int page, int pageSize) {
         PaginationValidator.validate(page, pageSize);
 
-        final Query nativeQuery = em.createNativeQuery("SELECT reportid FROM listreport ORDER BY date DESC OFFSET :offset LIMIT :limit")
+        final Query nativeQuery = em.createNativeQuery("SELECT reportid " +
+                        "FROM listreport " +
+                        "ORDER BY date DESC OFFSET :offset LIMIT :limit")
                 .setParameter("offset", (page - 1) * pageSize)
                 .setParameter("limit", pageSize);
         @SuppressWarnings("unchecked")
@@ -108,7 +116,9 @@ public class ReportHibernateDao implements ReportDao {
         final Query countQuery = em.createQuery("SELECT COUNT(*) FROM ListReport");
         long count = (long) countQuery.getSingleResult();
 
-        final TypedQuery<ListReport> query = em.createQuery("FROM ListReport WHERE reportId IN (:reportIds) ORDER BY date DESC", ListReport.class)
+        final TypedQuery<ListReport> query = em.createQuery("FROM ListReport " +
+                        "WHERE reportId IN (:reportIds) " +
+                        "ORDER BY date DESC", ListReport.class)
                 .setParameter("reportIds", reportIds);
         List<ListReport> listReports = reportIds.isEmpty() ? Collections.emptyList() : query.getResultList();
 
@@ -119,7 +129,9 @@ public class ReportHibernateDao implements ReportDao {
     public PageContainer<ListCommentReport> getListCommentReports(int page, int pageSize) {
         PaginationValidator.validate(page, pageSize);
 
-        final Query nativeQuery = em.createNativeQuery("SELECT reportid FROM listcommentreport ORDER BY date DESC OFFSET :offset LIMIT :limit")
+        final Query nativeQuery = em.createNativeQuery("SELECT reportid " +
+                        "FROM listcommentreport " +
+                        "ORDER BY date DESC OFFSET :offset LIMIT :limit")
                 .setParameter("offset", (page - 1) * pageSize)
                 .setParameter("limit", pageSize);
         @SuppressWarnings("unchecked")
@@ -128,7 +140,9 @@ public class ReportHibernateDao implements ReportDao {
         final Query countQuery = em.createQuery("SELECT COUNT(*) FROM ListCommentReport");
         long count = (long) countQuery.getSingleResult();
 
-        final TypedQuery<ListCommentReport> query = em.createQuery("FROM ListCommentReport WHERE reportId IN (:reportIds) ORDER BY date DESC", ListCommentReport.class)
+        final TypedQuery<ListCommentReport> query = em.createQuery("FROM ListCommentReport " +
+                        "WHERE reportId IN (:reportIds) " +
+                        "ORDER BY date DESC", ListCommentReport.class)
                 .setParameter("reportIds", reportIds);
         List<ListCommentReport> listReports = reportIds.isEmpty() ? Collections.emptyList() : query.getResultList();
 
@@ -139,7 +153,9 @@ public class ReportHibernateDao implements ReportDao {
     public PageContainer<MediaCommentReport> getMediaCommentReports(int page, int pageSize) {
         PaginationValidator.validate(page, pageSize);
 
-        final Query nativeQuery = em.createNativeQuery("SELECT reportid FROM mediacommentreport ORDER BY date DESC OFFSET :offset LIMIT :limit")
+        final Query nativeQuery = em.createNativeQuery("SELECT reportid " +
+                        "FROM mediacommentreport " +
+                        "ORDER BY date DESC OFFSET :offset LIMIT :limit")
                 .setParameter("offset", (page - 1) * pageSize)
                 .setParameter("limit", pageSize);
         @SuppressWarnings("unchecked")
@@ -148,7 +164,9 @@ public class ReportHibernateDao implements ReportDao {
         final Query countQuery = em.createQuery("SELECT COUNT(*) FROM MediaCommentReport");
         long count = (long) countQuery.getSingleResult();
 
-        final TypedQuery<MediaCommentReport> query = em.createQuery("FROM MediaCommentReport WHERE reportId IN (:reportIds) ORDER BY date DESC", MediaCommentReport.class)
+        final TypedQuery<MediaCommentReport> query = em.createQuery("FROM MediaCommentReport " +
+                        "WHERE reportId IN (:reportIds) " +
+                        "ORDER BY date DESC", MediaCommentReport.class)
                 .setParameter("reportIds", reportIds);
         List<MediaCommentReport> listReports = reportIds.isEmpty() ? Collections.emptyList() : query.getResultList();
 

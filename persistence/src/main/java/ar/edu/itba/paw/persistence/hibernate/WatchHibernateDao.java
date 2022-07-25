@@ -58,21 +58,26 @@ public class WatchHibernateDao implements WatchDao {
 
     @Override
     public boolean isWatched(Media media, User user) {
-        return !(((Number) em.createNativeQuery("SELECT COUNT(mediaid) AS count FROM towatchmedia WHERE mediaId = :mediaId AND userid = :userId AND watchDate IS NOT NULL")
+        return !(((Number) em.createNativeQuery("SELECT COUNT(mediaid) " +
+                        "FROM towatchmedia " +
+                        "WHERE mediaId = :mediaId AND userid = :userId AND watchDate IS NOT NULL")
                 .setParameter("mediaId", media.getMediaId())
                 .setParameter("userId", user.getUserId()).getSingleResult()).intValue() == 0);
     }
 
     @Override
     public boolean isToWatch(Media media, User user) {
-        return !(((Number) em.createNativeQuery("SELECT COUNT(mediaid) AS count FROM towatchmedia WHERE mediaId = :mediaId AND userid = :userId AND watchDate IS NULL")
+        return !(((Number) em.createNativeQuery("SELECT COUNT(mediaid) " +
+                        "FROM towatchmedia " +
+                        "WHERE mediaId = :mediaId AND userid = :userId AND watchDate IS NULL")
                 .setParameter("mediaId", media.getMediaId())
                 .setParameter("userId", user.getUserId()).getSingleResult()).intValue() == 0);
     }
 
     @Override
     public Optional<WatchedMedia> getWatchedMedia(User user, Media media) {
-        return em.createQuery("FROM WatchedMedia WHERE media = :media AND user = :user AND watchDate IS NOT NULL", WatchedMedia.class)
+        return em.createQuery("FROM WatchedMedia " +
+                        "WHERE media = :media AND user = :user AND watchDate IS NOT NULL", WatchedMedia.class)
                 .setParameter("media", media)
                 .setParameter("user", user)
                 .getResultList().stream().findFirst();
@@ -81,38 +86,56 @@ public class WatchHibernateDao implements WatchDao {
     @Override
     public PageContainer<WatchedMedia> getWatchedMedia(User user, int page, int pageSize) {
         PaginationValidator.validate(page, pageSize);
-        final Query nativeQuery = em.createNativeQuery("SELECT watchedmediaid FROM towatchmedia NATURAL JOIN media WHERE userId = :userId AND watchDate IS NOT NULL ORDER BY watchDate DESC OFFSET :offset LIMIT :limit");
-        nativeQuery.setParameter("userId", user.getUserId());
-        nativeQuery.setParameter("offset", (page - 1) * pageSize);
-        nativeQuery.setParameter("limit", pageSize);
+
+        final Query nativeQuery = em.createNativeQuery("SELECT watchedmediaid " +
+                        "FROM towatchmedia NATURAL JOIN media " +
+                        "WHERE userId = :userId AND watchDate IS NOT NULL " +
+                        "ORDER BY watchDate DESC OFFSET :offset LIMIT :limit")
+                .setParameter("userId", user.getUserId())
+                .setParameter("offset", (page - 1) * pageSize)
+                .setParameter("limit", pageSize);
         @SuppressWarnings("unchecked")
         List<Long> mediaIds = nativeQuery.getResultList();
-        final Query countQuery = em.createNativeQuery("SELECT COUNT(watchedmediaid) FROM towatchmedia NATURAL JOIN media WHERE userId = :userId AND watchDate IS NOT NULL");
-        countQuery.setParameter("userId", user.getUserId());
+        final Query countQuery = em.createNativeQuery("SELECT COUNT(watchedmediaid) " +
+                        "FROM towatchmedia NATURAL JOIN media " +
+                        "WHERE userId = :userId AND watchDate IS NOT NULL")
+                .setParameter("userId", user.getUserId());
         long count = ((Number) countQuery.getSingleResult()).longValue();
 
-        final TypedQuery<WatchedMedia> typedQuery = em.createQuery("FROM WatchedMedia WHERE watchedMediaId IN (:mediaIds)", WatchedMedia.class)
+        final TypedQuery<WatchedMedia> typedQuery = em.createQuery("FROM WatchedMedia " +
+                        "WHERE watchedMediaId IN (:mediaIds)", WatchedMedia.class)
                 .setParameter("mediaIds", mediaIds);
         List<WatchedMedia> mediaList = mediaIds.isEmpty() ? Collections.emptyList() : typedQuery.getResultList();
+
         return new PageContainer<>(mediaList, page, pageSize, count);
     }
 
     @Override
     public PageContainer<Media> getToWatchMedia(User user, int page, int pageSize) {
         PaginationValidator.validate(page, pageSize);
-        final Query nativeQuery = em.createNativeQuery("SELECT mediaid FROM towatchmedia NATURAL JOIN media WHERE userId = :userId AND watchDate IS NULL ORDER BY watchDate DESC OFFSET :offset LIMIT :limit");
-        nativeQuery.setParameter("userId", user.getUserId());
-        nativeQuery.setParameter("offset", (page - 1) * pageSize);
-        nativeQuery.setParameter("limit", pageSize);
+
+        final Query nativeQuery = em.createNativeQuery("SELECT mediaid " +
+                        "FROM towatchmedia NATURAL JOIN media " +
+                        "WHERE userId = :userId AND watchDate IS NULL " +
+                        "ORDER BY watchDate DESC OFFSET :offset LIMIT :limit")
+                .setParameter("userId", user.getUserId())
+                .setParameter("offset", (page - 1) * pageSize)
+                .setParameter("limit", pageSize);
         @SuppressWarnings("unchecked")
         List<Long> mediaIds = nativeQuery.getResultList();
-        final Query countQuery = em.createNativeQuery("SELECT COUNT(mediaid) FROM towatchmedia NATURAL JOIN media WHERE userId = :userId AND watchDate IS NULL");
-        countQuery.setParameter("userId", user.getUserId());
+
+        final Query countQuery = em.createNativeQuery("SELECT COUNT(mediaid) " +
+                        "FROM towatchmedia NATURAL JOIN media " +
+                        "WHERE userId = :userId AND watchDate IS NULL")
+                .setParameter("userId", user.getUserId());
         long count = ((Number) countQuery.getSingleResult()).longValue();
 
-        final TypedQuery<Media> typedQuery = em.createQuery("FROM Media WHERE mediaId IN (:mediaIds)", Media.class)
+        final TypedQuery<Media> typedQuery = em.createQuery("FROM Media " +
+                        "WHERE mediaId " +
+                        "IN (:mediaIds)", Media.class)
                 .setParameter("mediaIds", mediaIds);
         List<Media> mediaList = mediaIds.isEmpty() ? Collections.emptyList() : typedQuery.getResultList();
+
         return new PageContainer<>(mediaList, page, pageSize, count);
     }
 }

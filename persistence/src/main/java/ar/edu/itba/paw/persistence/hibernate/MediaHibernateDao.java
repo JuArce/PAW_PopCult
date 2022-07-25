@@ -32,30 +32,33 @@ public class MediaHibernateDao implements MediaDao {
 
     @Override
     public List<Media> getById(List<Integer> mediaIds) {
-        final TypedQuery<Media> query = em.createQuery("from Media where mediaId in :mediaIds", Media.class);
-        query.setParameter("mediaIds", mediaIds);
+        final TypedQuery<Media> query = em.createQuery("FROM Media " +
+                        "WHERE mediaId IN :mediaIds", Media.class)
+                .setParameter("mediaIds", mediaIds);
         return mediaIds.isEmpty() ? Collections.emptyList() : query.getResultList();
     }
 
     @Override
     public PageContainer<Media> getMediaList(MediaType mediaType, int page, int pageSize) {
-        //Para paginacion
-        //Pedimos el contenido paginado.
         PaginationValidator.validate(page, pageSize);
-        final Query nativeQuery = em.createNativeQuery("SELECT mediaid FROM media WHERE type = :type OFFSET :offset LIMIT :limit");
-        nativeQuery.setParameter("type", mediaType.ordinal());
-        nativeQuery.setParameter("offset", (page - 1) * pageSize);
-        nativeQuery.setParameter("limit", pageSize);
+
+        final Query nativeQuery = em.createNativeQuery("SELECT mediaid FROM media WHERE type = :type OFFSET :offset LIMIT :limit")
+                .setParameter("type", mediaType.ordinal())
+                .setParameter("offset", (page - 1) * pageSize)
+                .setParameter("limit", pageSize);
         @SuppressWarnings("unchecked")
         List<Long> mediaIds = nativeQuery.getResultList();
-        //Obtenemos la cantidad total de elementos.
-        final Query countQuery = em.createQuery("SELECT COUNT(*) AS count FROM Media where type = :type");
-        countQuery.setParameter("type", mediaType);
+
+        final Query countQuery = em.createQuery("SELECT COUNT(*) AS count " +
+                        "FROM Media " +
+                        "WHERE type = :type")
+                .setParameter("type", mediaType);
         final long count = (long) countQuery.getSingleResult();
 
-        //Query que se pide con los ids ya paginados
-        final TypedQuery<Media> query = em.createQuery("from Media where mediaId in (:mediaids)", Media.class);
-        query.setParameter("mediaids", mediaIds);
+        final TypedQuery<Media> query = em.createQuery("FROM Media " +
+                        "WHERE mediaId " +
+                        "IN (:mediaids)", Media.class)
+                .setParameter("mediaids", mediaIds);
         List<Media> mediaList = mediaIds.isEmpty() ? Collections.emptyList() : query.getResultList();
 
         return new PageContainer<>(mediaList, page, pageSize, count);
@@ -72,7 +75,6 @@ public class MediaHibernateDao implements MediaDao {
             wheres.add(SortType.TITLE.getNameMedia() + " ILIKE CONCAT('%', :name, '%')");
             parameters.put("name", term);
         }
-
         if (!genre.isEmpty()) {
             wheres.add(" genreid IN ( :genres)");
             parameters.put("genres", genre.stream().map(Genre::ordinal).collect(Collectors.toList()));
@@ -125,8 +127,8 @@ public class MediaHibernateDao implements MediaDao {
 
     @Override
     public PageContainer<Media> getMediaByFilters(List<MediaType> mediaType, int page, int pageSize, SortType sort, List<Genre> genre, LocalDateTime fromDate, LocalDateTime toDate, String term, Integer notInList) {
-
         PaginationValidator.validate(page, pageSize);
+
         String sortBaseString = "";
         String sortCountString = "";
         StringBuilder fromTables = new StringBuilder();
@@ -148,21 +150,17 @@ public class MediaHibernateDao implements MediaDao {
             }
         }
 
-        //Para paginacion
-        //Pedimos el contenido paginado.
         final String baseQuery = "SELECT mediaid FROM ( SELECT DISTINCT media.mediaid " + sortBaseString + " FROM " + fromTables;
         final Query nativeQuery = buildAndWhereStatement(baseQuery, page, pageSize, term, mediaType, sort, genre, fromDate, toDate, notInList);
         @SuppressWarnings("unchecked")
         List<Long> mediaIds = nativeQuery.getResultList();
 
-        //Obtenemos la cantidad total de elementos.
         final String countBaseQuery = "SELECT COUNT(mediaid) FROM( SELECT DISTINCT media.mediaid FROM " + fromTables;
         final Query countQuery = buildAndWhereStatement(countBaseQuery, null, null, term, mediaType, null, genre, fromDate, toDate, notInList);
         final long count = ((Number) countQuery.getSingleResult()).longValue();
 
-        //Query que se pide con los ids ya paginados
-        final TypedQuery<Media> query = em.createQuery("from Media where mediaId in (:mediaids) " + sortCountString, Media.class);
-        query.setParameter("mediaids", mediaIds);
+        final TypedQuery<Media> query = em.createQuery("from Media where mediaId in (:mediaids) " + sortCountString, Media.class)
+                .setParameter("mediaids", mediaIds);
         List<Media> mediaList = mediaIds.isEmpty() ? Collections.emptyList() : query.getResultList();
 
         return new PageContainer<>(mediaList, page, pageSize, count);
