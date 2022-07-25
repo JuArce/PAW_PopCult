@@ -29,8 +29,9 @@ public class TokenHibernateDao implements TokenDao {
 
     @Override
     public Optional<Token> getToken(String token) {
-        final TypedQuery<Token> query = em.createQuery("from Token where token = :token", Token.class);
-        query.setParameter("token", token);
+        final TypedQuery<Token> query = em.createQuery("FROM Token " +
+                        "WHERE token = :token", Token.class)
+                .setParameter("token", token);
         return query.getResultList().stream().findFirst();
     }
 
