@@ -34,17 +34,21 @@ public class ModeratorHibernateDao implements ModeratorDao {
     public PageContainer<ModRequest> getModRequests(int page, int pageSize) {
         PaginationValidator.validate(page, pageSize);
 
-        final Query nativeQuery = em.createNativeQuery("SELECT m.requestid FROM modrequests m ORDER BY date DESC LIMIT :limit OFFSET :offset");
-        nativeQuery.setParameter("limit", pageSize);
-        nativeQuery.setParameter("offset", (page - 1) * pageSize);
+        final Query nativeQuery = em.createNativeQuery("SELECT m.requestid " +
+                        "FROM modrequests m " +
+                        "ORDER BY date DESC LIMIT :limit OFFSET :offset")
+                .setParameter("limit", pageSize)
+                .setParameter("offset", (page - 1) * pageSize);
         @SuppressWarnings("unchecked")
         List<Long> modRequestsIds = nativeQuery.getResultList();
 
-        final TypedQuery<ModRequest> query = em.createQuery("from ModRequest where requestId in (:modRequestsIds) ORDER BY date DESC", ModRequest.class);
-        query.setParameter("modRequestsIds", modRequestsIds);
+        final TypedQuery<ModRequest> query = em.createQuery("FROM ModRequest " +
+                        "WHERE requestId IN (:modRequestsIds) " +
+                        "ORDER BY date DESC", ModRequest.class)
+                .setParameter("modRequestsIds", modRequestsIds);
         List<ModRequest> moderators = modRequestsIds.isEmpty() ? Collections.emptyList() : query.getResultList();
 
-        final Query countQuery = em.createQuery("Select count(*) from ModRequest u");
+        final Query countQuery = em.createQuery("SELECT COUNT(*) FROM ModRequest");
         long count = (long) countQuery.getSingleResult();
 
         return new PageContainer<>(moderators, page, pageSize, count);

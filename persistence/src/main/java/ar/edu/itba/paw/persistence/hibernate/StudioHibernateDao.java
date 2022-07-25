@@ -30,46 +30,55 @@ public class StudioHibernateDao implements StudioDao {
 
     @Override
     public PageContainer<Media> getMediaByStudio(Studio studio, int page, int pageSize) {
-        PaginationValidator.validate(page,pageSize);
-        //Para paginacion
-        //Pedimos el contenido paginado.
-        final Query nativeQuery = em.createNativeQuery("SELECT mediaid FROM mediastudio WHERE studioid = :studioid OFFSET :offset LIMIT :limit");
-        nativeQuery.setParameter("studioid",studio.getStudioId());
-        nativeQuery.setParameter("offset",(page-1)*pageSize);
-        nativeQuery.setParameter("limit",pageSize);
+        PaginationValidator.validate(page, pageSize);
+
+        final Query nativeQuery = em.createNativeQuery("SELECT mediaid " +
+                        "FROM mediastudio " +
+                        "WHERE studioid = :studioid " +
+                        "OFFSET :offset LIMIT :limit")
+                .setParameter("studioid", studio.getStudioId())
+                .setParameter("offset", (page - 1) * pageSize)
+                .setParameter("limit", pageSize);
         @SuppressWarnings("unchecked")
         List<Long> mediaIds = nativeQuery.getResultList();
-        //Obtenemos la cantidad total de elementos.
-        final Query countQuery = em.createNativeQuery("SELECT COUNT(*) AS count FROM mediaStudio where studioId = :studioid");
-        countQuery.setParameter("studioid", studio.getStudioId());
+
+        final Query countQuery = em.createNativeQuery("SELECT COUNT(*) " +
+                        "FROM mediaStudio " +
+                        "WHERE studioId = :studioid")
+                .setParameter("studioid", studio.getStudioId());
         final long count = ((Number) countQuery.getSingleResult()).longValue();
 
-        //Query que se pide con los ids ya paginados
-        final TypedQuery<Media> query = em.createQuery("from Media where mediaId in (:mediaids)", Media.class);
-        query.setParameter("mediaids", mediaIds);
+        final TypedQuery<Media> query = em.createQuery("FROM Media " +
+                        "WHERE mediaId " +
+                        "IN (:mediaids)", Media.class)
+                .setParameter("mediaids", mediaIds);
         List<Media> mediaList = mediaIds.isEmpty() ? Collections.emptyList() : query.getResultList();
 
-        return new PageContainer<>(mediaList,page,pageSize,count);
+        return new PageContainer<>(mediaList, page, pageSize, count);
     }
 
     @Override
     public PageContainer<Studio> getAllStudios(int page, int pageSize) {
-        PaginationValidator.validate(page,pageSize);
+        PaginationValidator.validate(page, pageSize);
 
-        final Query nativeQuery = em.createNativeQuery("SELECT studioid FROM studio OFFSET :offset LIMIT :limit")
-                .setParameter("offset", (page-1) * pageSize)
+        final Query nativeQuery = em.createNativeQuery("SELECT studioid " +
+                        "FROM studio " +
+                        "OFFSET :offset LIMIT :limit")
+                .setParameter("offset", (page - 1) * pageSize)
                 .setParameter("limit", pageSize);
         @SuppressWarnings("unchecked")
         List<Long> studioIds = nativeQuery.getResultList();
 
-        final Query countQuery = em.createQuery("SELECT COUNT(*) FROM Studio");
+        final Query countQuery = em.createQuery("SELECT COUNT(*) " +
+                "FROM Studio");
         final long count = (long) countQuery.getSingleResult();
 
-        final TypedQuery<Studio> query = em.createQuery("FROM Studio WHERE studioid IN :studioIds", Studio.class)
+        final TypedQuery<Studio> query = em.createQuery("FROM Studio " +
+                        "WHERE studioId " +
+                        "IN :studioIds", Studio.class)
                 .setParameter("studioIds", studioIds);
         List<Studio> studios = studioIds.isEmpty() ? Collections.emptyList() : query.getResultList();
 
-        return new PageContainer<>(studios,page,pageSize,count);
+        return new PageContainer<>(studios, page, pageSize, count);
     }
-
 }

@@ -60,7 +60,9 @@ public class CommentHibernateDao implements CommentDao {
     @Override
     public PageContainer<MediaComment> getMediaComments(Media media, int page, int pageSize) {
         PaginationValidator.validate(page, pageSize);
-        final Query nativeQuery = em.createNativeQuery("SELECT commentid FROM mediacomment WHERE mediaid = :mediaId " +
+        final Query nativeQuery = em.createNativeQuery("SELECT commentid " +
+                        "FROM mediacomment " +
+                        "WHERE mediaid = :mediaId " +
                         "ORDER BY date DESC OFFSET :offset LIMIT :limit")
                 .setParameter("mediaId", media.getMediaId())
                 .setParameter("offset", (page - 1) * pageSize)
@@ -68,11 +70,15 @@ public class CommentHibernateDao implements CommentDao {
         @SuppressWarnings("unchecked")
         List<Long> commentIds = nativeQuery.getResultList();
 
-        final Query countQuery = em.createNativeQuery("SELECT COUNT(commentid) FROM mediacomment WHERE mediaid = :mediaId")
+        final Query countQuery = em.createNativeQuery("SELECT COUNT(commentid) " +
+                        "FROM mediacomment " +
+                        "WHERE mediaid = :mediaId")
                 .setParameter("mediaId", media.getMediaId());
         long count = ((Number) countQuery.getSingleResult()).longValue();
 
-        final TypedQuery<MediaComment> query = em.createQuery("FROM MediaComment WHERE commentId IN (:commentIds) ORDER BY creationDate DESC", MediaComment.class)//It works, ignore intellij
+        final TypedQuery<MediaComment> query = em.createQuery("FROM MediaComment " +
+                        "WHERE commentId IN (:commentIds) " +
+                        "ORDER BY creationDate DESC", MediaComment.class) //It works, ignore intellij
                 .setParameter("commentIds", commentIds);
         List<MediaComment> mediaComments = commentIds.isEmpty() ? Collections.emptyList() : query.getResultList();
 
@@ -82,7 +88,9 @@ public class CommentHibernateDao implements CommentDao {
     @Override
     public PageContainer<ListComment> getListComments(MediaList mediaList, int page, int pageSize) {
         PaginationValidator.validate(page, pageSize);
-        final Query nativeQuery = em.createNativeQuery("SELECT commentid FROM listcomment WHERE listid = :listId " +
+        final Query nativeQuery = em.createNativeQuery("SELECT commentid " +
+                        "FROM listcomment " +
+                        "WHERE listid = :listId " +
                         "ORDER BY date DESC OFFSET :offset LIMIT :limit")
                 .setParameter("listId", mediaList.getMediaListId())
                 .setParameter("offset", (page - 1) * pageSize)
@@ -90,11 +98,15 @@ public class CommentHibernateDao implements CommentDao {
         @SuppressWarnings("unchecked")
         List<Long> commentIds = nativeQuery.getResultList();
 
-        final Query countQuery = em.createNativeQuery("SELECT COUNT(commentid) FROM listcomment WHERE listid = :listId")
+        final Query countQuery = em.createNativeQuery("SELECT COUNT(commentid) " +
+                        "FROM listcomment " +
+                        "WHERE listid = :listId")
                 .setParameter("listId", mediaList.getMediaListId());
         long count = ((Number) countQuery.getSingleResult()).longValue();
 
-        final TypedQuery<ListComment> query = em.createQuery("FROM ListComment WHERE commentId IN (:commentIds) ORDER BY creationDate DESC", ListComment.class)//It works, ignore intellij
+        final TypedQuery<ListComment> query = em.createQuery("FROM ListComment " +
+                        "WHERE commentId IN (:commentIds) " +
+                        "ORDER BY creationDate DESC", ListComment.class) //It works, ignore intellij
                 .setParameter("commentIds", commentIds);
         List<ListComment> mediaComments = commentIds.isEmpty() ? Collections.emptyList() : query.getResultList();
 
@@ -125,22 +137,24 @@ public class CommentHibernateDao implements CommentDao {
     public PageContainer<Notification> getUserListsCommentsNotifications(User user, int page, int pageSize) {
         PaginationValidator.validate(page, pageSize);
 
-        final Query nativeQuery = em.createNativeQuery("SELECT notificationid FROM commentnotifications NATURAL JOIN listcomment " +
+        final Query nativeQuery = em.createNativeQuery("SELECT notificationid " +
+                        "FROM commentnotifications NATURAL JOIN listcomment " +
                         "WHERE commentid IN (SELECT lc.commentid FROM listcomment lc JOIN medialist ml ON lc.listid = ml.medialistid WHERE ml.userid = :userId)" +
-                        "ORDER BY date DESC " +
-                        "OFFSET :offset LIMIT :limit")
+                        "ORDER BY date DESC OFFSET :offset LIMIT :limit")
                 .setParameter("userId", user.getUserId())
                 .setParameter("offset", (page - 1) * pageSize)
                 .setParameter("limit", pageSize);
         @SuppressWarnings("unchecked")
         List<Long> notificationIds = nativeQuery.getResultList();
 
-        final Query countQuery = em.createNativeQuery("SELECT COUNT(notificationid) FROM commentnotifications " +
+        final Query countQuery = em.createNativeQuery("SELECT COUNT(notificationid) " +
+                        "FROM commentnotifications " +
                         "WHERE commentid IN (SELECT lc.commentid FROM listcomment lc JOIN medialist ml ON lc.listid = ml.medialistid WHERE ml.userid = :userId)")
                 .setParameter("userId", user.getUserId());
         long count = ((Number) countQuery.getSingleResult()).longValue();
 
-        final TypedQuery<Notification> query = em.createQuery("FROM Notification WHERE notificationId IN (:notificationIds)", Notification.class);
+        final TypedQuery<Notification> query = em.createQuery("FROM Notification " +
+                "WHERE notificationId IN (:notificationIds)", Notification.class);
         query.setParameter("notificationIds", notificationIds);
         List<Notification> notifications = notificationIds.isEmpty() ? Collections.emptyList() : query.getResultList();
 
